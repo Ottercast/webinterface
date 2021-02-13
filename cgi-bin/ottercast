@@ -1,0 +1,263 @@
+#!/usr/bin/env php-cgi
+<?php 
+require(__DIR__ . "/config.php");
+
+if (count($_POST))
+{
+	$new_config = ""; 
+	$new_config .= "CONFIG_DISPLAY_NAME=" . escapeshellarg($_POST['hostname']) . "\n";
+	$new_config .= "CONFIG_WIFI_SSID=" . escapeshellarg($_POST['ssid']) . "\n";
+
+	if (trim($_POST['psk']) !== "****")
+	{
+		$new_config .= "CONFIG_WIFI_PSK=" . escapeshellarg($_POST['psk']) . "\n";
+	}
+	else
+	{
+		$new_config .= "CONFIG_WIFI_PSK=" . escapeshellarg($config['CONFIG_WIFI_PSK']) . "\n";
+	}
+
+	$new_config .= "CONFIG_AIRPLAY_ACTIVE=" . escapeshellarg($_POST['airplay'] == 'active' ? '1' : '0') . "\n";
+	$new_config .= "CONFIG_PULSEAUDIO_ACTIVE=" . escapeshellarg($_POST['pulseaudio'] == 'active' ? '1' : '0') . "\n";
+	$new_config .= "CONFIG_PULSEAUDIO_LATENCY=" . escapeshellarg($config['CONFIG_PULSEAUDIO_LATENCY']) . "\n";
+
+	$new_config .= "CONFIG_LINEIN_STREAM_ACTIVE=" . escapeshellarg($_POST['linein'] == 'active' ? '1' : '0') . "\n";
+	$new_config .= "CONFIG_LINEIN_STREAM_TARGET=" . escapeshellarg($_POST['lineintarget']) . "\n";
+
+
+	file_put_contents("/mnt/config.sh", $new_config);
+
+	// parse new config again
+	require(__DIR__ . "/config.php");
+}
+
+// WiFi status
+$wifi_info = `iw wlan0 station dump`;
+preg_match_all( '/signal:.*?(\-[0-9]*)\s/m', $wifi_info, $matches, PREG_SET_ORDER, 0);
+
+$wifi_connected = false;
+if (count($matches))
+{
+	$wifi_connected = true; 
+
+	$wifi_rssi = $matches[0][1]; 
+
+	$wifi_data = json_decode(`ip -j address show dev wlan0`, true);
+	$wifi_ipv4 = "";
+	foreach ($wifi_data[0]["addr_info"] as $ipaddr)
+	{
+		if ($ipaddr['family'] == "inet")
+		{
+			$wifi_ipv4 .= $ipaddr["local"] . ", ";
+		}
+	}
+	$wifi_ipv4 = rtrim(trim($wifi_ipv4), ",");
+}
+
+// Ethernet status
+
+$ethernet = json_decode(`ip -j addr show dev eth0`, true);
+$ethernet_connected = ($ethernet[0]["operstate"] !== "DOWN");
+$ethernet_ipv4 = "";
+foreach ($ethernet[0]["addr_info"] as $ipaddr)
+{
+	if ($ipaddr['family'] == "inet")
+	{
+		$ethernet_ipv4 .= $ipaddr["local"] . ", ";
+	}
+}
+$ethernet_ipv4 = rtrim(trim($ethernet_ipv4), ",");
+
+// Load average
+
+$loadavg = explode(" ", file_get_contents("/proc/loadavg"));
+$loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
+
+?>
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<base href="/">
+
+		<title>OtterCastAudio</title>
+
+		<!-- Bootstrap core CSS -->
+		<link href="assets/bootstrap.min.css" rel="stylesheet">
+
+		<style>
+			.bd-placeholder-img {
+				font-size: 1.125rem;
+				text-anchor: middle;
+				-webkit-user-select: none;
+				-moz-user-select: none;
+				user-select: none;
+			}
+
+			@media (min-width: 768px) {
+				.bd-placeholder-img-lg {
+					font-size: 3.5rem;
+				}
+			}
+
+			.logo {
+				user-drag: none; 
+				user-select: none;
+				-moz-user-select: none;
+				-webkit-user-drag: none;
+				-webkit-user-select: none;
+				-ms-user-select: none;
+				margin-right: 20px;
+			}
+		</style>
+
+		
+		<!-- Custom styles for this template -->
+		<link href="assets/form-validation.css" rel="stylesheet">
+	</head>
+	<body class="bg-light">
+		    
+		<header class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-body border-bottom shadow-sm">
+			<div class="mx-auto">
+				<img class="logo" src="assets/logo.svg" alt="miau!" title="miau!" height="100">
+				<span class="h1">OtterCastAudio</span>
+			</div>
+		</header>
+
+
+		<div class="container">
+			<main>
+				<div class="text-center">
+					<p class="lead"></p>
+				</div>
+
+				<div class="row g-3">
+					<div class="col-md-5 col-lg-4 order-md-last">
+						<h4 class="d-flex justify-content-between align-items-center mb-3">
+							<span class="text-muted">Status</span>
+						</h4>
+						<ul class="list-group mb-3">
+							<li class="list-group-item d-flex justify-content-between lh-sm">
+								<div>
+									<h6 class="my-0">WiFi</h6>
+									<?php 
+									if ($wifi_connected) 
+									{ 
+										?><small>connected, <?php echo $wifi_rssi; ?>dBm, <?php echo $wifi_ipv4; ?></small><?php
+									} 
+									else
+									{
+										?><small>not connected</small><?php
+									}?>
+								</div>
+							</li>
+							<li class="list-group-item d-flex justify-content-between lh-sm">
+								<div>
+									<h6 class="my-0">Ethernet</h6>
+									<?php 
+									if ($ethernet_connected) 
+									{ 
+										?><small>connected, <?php echo $ethernet_ipv4; ?></small><?php
+									} 
+									else
+									{
+										?><small>not connected</small><?php
+									}?>
+								</div>
+							</li>
+							<li class="list-group-item d-flex justify-content-between lh-sm">
+								<div>
+									<h6 class="my-0">System load</h6>
+									<small><?php echo $loadavg; ?></small>
+								</div>
+							</li>
+						</ul>
+					</div>
+					<div class="col-md-7 col-lg-8">
+						<form class="needs-validation" novalidate action="/cgi-bin/ottercast" method="POST">
+							<div class="col-12">
+								<label for="hostname" class="form-label">Display name</label>
+								<input type="text" class="form-control" name="hostname" id="hostname" placeholder="OtterCast Bathroom"  value="<?php echo htmlspecialchars($config["CONFIG_DISPLAY_NAME"]); ?>" required>
+								<div class="invalid-feedback">
+									Please enter a valid hostname.
+								</div>
+							</div>
+
+
+							<hr class="my-4">
+
+							<h4 class="mb-3">WiFi details</h4>
+
+							<div class="row g-3">
+								<div class="col-12">
+									<label for="ssid" class="form-label">Network name (SSID)</label>
+									<input type="text" class="form-control" name="ssid" id="ssid" placeholder="Pretty Fly for a Wi-Fi" value="<?php echo htmlspecialchars($config["CONFIG_WIFI_SSID"]); ?>" required>
+									<div class="invalid-feedback">
+										Please enter a valid network name (SSID).
+									</div>
+								</div>
+
+								<div class="col-12">
+									<label for="psk" class="form-label">Passphrase (PSK)</label>
+									<input type="password" class="form-control" name="psk" id="psk" placeholder="NeverGonnaGiveYouUp" value="****" required>
+									<div class="invalid-feedback">
+										Please enter your passphase (PSK).
+									</div>
+								</div>
+							</div>
+
+							<hr class="my-4">
+
+							<h4 class="mb-3">Protocols</h4>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="airplay" id="airplay" value="active" <?php if ($config["CONFIG_AIRPLAY_ACTIVE"]) echo "checked"; ?>>
+								<label class="form-check-label" for="airplay">AirPlay (Shairport Sync)</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="pulseaudio" id="pulseaudio" value="active" <?php if ($config["CONFIG_PULSEAUDIO_ACTIVE"]) echo "checked"; ?>>
+								<label class="form-check-label" for="pulseaudio">PulseAudio Sink</label>
+							</div>
+
+							<hr class="my-4">
+
+							<h4 class="mb-3">Line-In Streaming</h4>
+							<div class="mb-2 small">OtterCast is able to stream the Line-In port directly to another OtterCast or networked PulseAudio device.
+							Make sure "PulseAudio Sink" protocol is active on the receiver and set the correct target hostname. Avahi/mDNS can be used with the ".local" suffix.</div>
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input mb-3" name="linein" id="linein" value="active" <?php if ($config["CONFIG_LINEIN_STREAM_ACTIVE"]) echo "checked"; ?>>
+								<label class="form-check-label" for="linein">Streaming active</label>
+							</div>
+							<div class="col-12">
+									<label for="ssid" class="form-label">Target (IP/hostname)</label>
+									<input type="text" class="form-control" name="lineintarget" id="lineintarget" placeholder="ottercast2.local" value="<?php echo htmlspecialchars($config["CONFIG_LINEIN_STREAM_TARGET"]); ?>">
+									<div class="invalid-feedback">
+										Please enter a valid hostname or IP address.
+									</div>
+								</div>
+
+							<hr class="my-4">
+
+							<button class="w-100 btn btn-success btn-lg" type="submit">Save settings</button>
+						</form>
+					</div>
+				</div>
+			</main>
+
+			<footer class="my-5 pt-5 text-muted text-center text-small">
+				<p class="mb-1">&copy; 2020-2021 by<br>Jan Henrik Hemsig, Niklas Fauth,<br> Tobias Schramm, Tobias Mädel</p>
+				<br>
+				<ul class="list-inline">
+					<li class="list-inline-item"><a href="https://github.com/TobleMiner/buildroot-ottercast-audio">Firmware</a></li>
+					<li class="list-inline-item"><a href="https://github.com/Jan--Henrik/OtterCastAudioV2">PCB</a></li>
+				</ul>
+			</footer>
+		</div>
+
+		<script src="assets/bootstrap.bundle.min.js"></script>
+		<script src="assets/form-validation.js"></script>
+	</body>
+</html>
