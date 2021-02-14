@@ -1,4 +1,3 @@
-#!/usr/bin/env php
 <?php
 require(__DIR__ . "/config.php");
 
@@ -20,6 +19,16 @@ else
 	`systemctl stop pulseaudio`;
 }
 
+if ($config['CONFIG_LIBRESPOT_ACTIVE'])
+{
+	`systemctl start librespot`;
+}
+else
+{
+	`systemctl stop librespot`;
+}
+
+
 $wpaconf = 'ctrl_interface=/var/run/wpa_supplicant
 #ap_scan=1
 
@@ -37,4 +46,31 @@ if (file_get_contents($wpaconfPath) != $wpaconf)
 	file_put_contents($wpaconfPath, $wpaconf);
 	`systemctl restart wpa_supplicant@wlan0`;
 }
+else
+{
+	`systemctl start wpa_supplicant@wlan0`;
+}
 
+if (trim(file_get_contents("/etc/hostname")) != trim($config['CONFIG_DISPLAY_NAME']))
+{
+	$cmd = 'hostnamectl set-hostname ' . escapeshellarg($config['CONFIG_DISPLAY_NAME']);
+	`$cmd`;
+
+	`systemctl restart avahi-daemon`;
+
+	if ($config['CONFIG_PULSEAUDIO_ACTIVE'])
+	{
+		`systemctl restart pulseaudio`;
+	}
+	if ($config['CONFIG_AIRPLAY_ACTIVE'])
+	{
+		`systemctl restart shairport-sync`;
+	}
+	if ($config['CONFIG_LIBRESPOT_ACTIVE'])
+	{
+		`systemctl restart librespot`;
+	}
+
+	$restarted_services = true;
+
+}

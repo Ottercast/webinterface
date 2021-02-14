@@ -2,10 +2,12 @@
 <?php 
 require(__DIR__ . "/config.php");
 
-if (count($_POST))
+if (isset($_POST['ssid']))
 {
+	$hostname = preg_replace('/[^A-Za-z0-9\-]/', '', $_POST['hostname']);
+
 	$new_config = ""; 
-	$new_config .= "CONFIG_DISPLAY_NAME=" . escapeshellarg($_POST['hostname']) . "\n";
+	$new_config .= "CONFIG_DISPLAY_NAME=" . escapeshellarg($hostname) . "\n";
 	$new_config .= "CONFIG_WIFI_SSID=" . escapeshellarg($_POST['ssid']) . "\n";
 
 	if (trim($_POST['psk']) !== "****")
@@ -20,6 +22,7 @@ if (count($_POST))
 	$new_config .= "CONFIG_AIRPLAY_ACTIVE=" . escapeshellarg($_POST['airplay'] == 'active' ? '1' : '0') . "\n";
 	$new_config .= "CONFIG_PULSEAUDIO_ACTIVE=" . escapeshellarg($_POST['pulseaudio'] == 'active' ? '1' : '0') . "\n";
 	$new_config .= "CONFIG_PULSEAUDIO_LATENCY=" . escapeshellarg($config['CONFIG_PULSEAUDIO_LATENCY']) . "\n";
+	$new_config .= "CONFIG_LIBRESPOT_ACTIVE=" . escapeshellarg($_POST['librespot'] == 'active' ? '1' : '0') . "\n";
 
 	$new_config .= "CONFIG_LINEIN_STREAM_ACTIVE=" . escapeshellarg($_POST['linein'] == 'active' ? '1' : '0') . "\n";
 	$new_config .= "CONFIG_LINEIN_STREAM_TARGET=" . escapeshellarg($_POST['lineintarget']) . "\n";
@@ -29,6 +32,8 @@ if (count($_POST))
 
 	// parse new config again
 	require(__DIR__ . "/config.php");
+
+	require(__DIR__ . "/applyConfig.php");
 }
 
 // WiFi status
@@ -84,6 +89,8 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 
 		<title>OtterCastAudio</title>
 
+		<link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+
 		<!-- Bootstrap core CSS -->
 		<link href="assets/bootstrap.min.css" rel="stylesheet">
 
@@ -121,8 +128,10 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 		    
 		<header class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-body border-bottom shadow-sm">
 			<div class="mx-auto">
-				<img class="logo" src="assets/logo.svg" alt="miau!" title="miau!" height="100">
-				<span class="h1">OtterCastAudio</span>
+				<a href="/cgi-bin/ottercast" class="text-decoration-none text-reset">
+					<img class="logo" src="assets/logo.svg" alt="miau!" title="miau!" height="100">
+					<span class="h1">OtterCastAudio</span>
+				</a>
 			</div>
 		</header>
 
@@ -132,7 +141,26 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 				<div class="text-center">
 					<p class="lead"></p>
 				</div>
+				<?php 
+				if (isset($_POST['ssid']))
+				{ 
+				?> 
+					<div class="alert alert-success" role="alert">
+					Configuration saved successfully!
+					</div>
+				<?php 
+				}
+				if (isset($restarted_services))
+				{ 
+				?> 
+					<div class="alert alert-success" role="alert">
+					Restarted services to apply hostname change!
+					</div>
+				<?php 
+				}
 
+
+				?>
 				<div class="row g-3">
 					<div class="col-md-5 col-lg-4 order-md-last">
 						<h4 class="d-flex justify-content-between align-items-center mb-3">
@@ -179,7 +207,7 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 						<form class="needs-validation" novalidate action="/cgi-bin/ottercast" method="POST">
 							<div class="col-12">
 								<label for="hostname" class="form-label">Display name</label>
-								<input type="text" class="form-control" name="hostname" id="hostname" placeholder="OtterCast Bathroom"  value="<?php echo htmlspecialchars($config["CONFIG_DISPLAY_NAME"]); ?>" required>
+								<input type="text" class="form-control" name="hostname" id="hostname" placeholder="OtterCast Bathroom"  value="<?php echo htmlspecialchars($config["CONFIG_DISPLAY_NAME"]); ?>" pattern="[A-Za-z0-9\-]{3,50}" required>
 								<div class="invalid-feedback">
 									Please enter a valid hostname.
 								</div>
@@ -220,6 +248,11 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input" name="pulseaudio" id="pulseaudio" value="active" <?php if ($config["CONFIG_PULSEAUDIO_ACTIVE"]) echo "checked"; ?>>
 								<label class="form-check-label" for="pulseaudio">PulseAudio Sink</label>
+							</div>
+
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="librespot" id="librespot" value="active" <?php if ($config["CONFIG_LIBRESPOT_ACTIVE"]) echo "checked"; ?>>
+								<label class="form-check-label" for="librespot">Spotify Connect (librespot)</label>
 							</div>
 
 							<hr class="my-4">
