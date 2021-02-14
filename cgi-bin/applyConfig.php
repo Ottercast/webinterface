@@ -44,11 +44,12 @@ $wpaconfPath = "/etc/wpa_supplicant/wpa_supplicant-wlan0.conf";
 if (file_get_contents($wpaconfPath) != $wpaconf)
 {
 	file_put_contents($wpaconfPath, $wpaconf);
-	`systemctl restart wpa_supplicant@wlan0`;
+	`ifdown --force wlan0`;
+	`ifup wlan0`;
 }
 else
 {
-	`systemctl start wpa_supplicant@wlan0`;
+	`ifup wlan0`;
 }
 
 if (trim(file_get_contents("/etc/hostname")) != trim($config['CONFIG_DISPLAY_NAME']))
