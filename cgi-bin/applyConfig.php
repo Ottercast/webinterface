@@ -45,6 +45,7 @@ if (file_get_contents($wpaconfPath) != $wpaconf)
 {
 	file_put_contents($wpaconfPath, $wpaconf);
 	`ifdown --force wlan0`;
+	`systemctl restart network`;
 	`ifup wlan0`;
 }
 else
