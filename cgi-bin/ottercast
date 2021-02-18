@@ -23,9 +23,10 @@ if (isset($_POST['ssid']))
 	$new_config .= "CONFIG_PULSEAUDIO_ACTIVE=" . escapeshellarg($_POST['pulseaudio'] == 'active' ? '1' : '0') . "\n";
 	$new_config .= "CONFIG_PULSEAUDIO_LATENCY=" . escapeshellarg($config['CONFIG_PULSEAUDIO_LATENCY']) . "\n";
 	$new_config .= "CONFIG_LIBRESPOT_ACTIVE=" . escapeshellarg($_POST['librespot'] == 'active' ? '1' : '0') . "\n";
+	$new_config .= "CONFIG_SNAPCAST_CLIENT_ACTIVE=" . escapeshellarg($_POST['snapclient'] == 'active' ? '1' : '0') . "\n";
+	$new_config .= "CONFIG_SNAPCAST_CLIENT_HOST=" . escapeshellarg($_POST['snapclienthost']) . "\n";
 
 	$new_config .= "CONFIG_LINEIN_STREAM_ACTIVE=" . escapeshellarg($_POST['linein'] == 'active' ? '1' : '0') . "\n";
-	$new_config .= "CONFIG_LINEIN_STREAM_TARGET=" . escapeshellarg($_POST['lineintarget']) . "\n";
 
 
 	file_put_contents("/mnt/config.sh", $new_config);
@@ -118,6 +119,37 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 				-ms-user-select: none;
 				margin-right: 20px;
 			}
+
+			label.form-check-label {
+				user-drag: none;
+				user-select: none;
+				-moz-user-select: none;
+				-webkit-user-drag: none;
+				-webkit-user-select: none;
+				-ms-user-select: none;
+			}
+
+			.bd-callout {
+				padding: 1.25rem;
+				/* margin-top: 1.25rem; */
+				margin-bottom: 1.25rem;
+				border: 1px solid #e9ecef;
+				border-left-width: .25rem;
+				border-radius: .25rem;
+				background-color: #ffffff;
+			}
+			.bd-callout-info {
+				border-left-color: #5bc0de !important;
+			}
+
+			.bd-callout-warning {
+				border-left-color: #f0ad4e
+			}
+
+			.bd-callout-danger {
+				border-left-color: #d9534f
+			}
+
 		</style>
 
 		
@@ -125,7 +157,7 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 		<link href="assets/form-validation.css" rel="stylesheet">
 	</head>
 	<body class="bg-light">
-		    
+			
 		<header class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-body border-bottom shadow-sm">
 			<div class="mx-auto">
 				<a href="/cgi-bin/ottercast" class="text-decoration-none text-reset">
@@ -204,7 +236,7 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 						</ul>
 					</div>
 					<div class="col-md-7 col-lg-8">
-						<form class="needs-validation" novalidate action="/cgi-bin/ottercast" method="POST">
+						<form class="needs-validation" novalidate action="/cgi-bin/ottercast" method="POST" id="settingsform">
 							<div class="col-12">
 								<label for="hostname" class="form-label">Display name</label>
 								<input type="text" class="form-control" name="hostname" id="hostname" placeholder="OtterCast Bathroom"  value="<?php echo htmlspecialchars($config["CONFIG_DISPLAY_NAME"]); ?>" pattern="[A-Za-z0-9\-]{3,50}" required>
@@ -255,22 +287,28 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 								<label class="form-check-label" for="librespot">Spotify Connect (librespot)</label>
 							</div>
 
+							<div class="form-check">
+								<input type="checkbox" class="form-check-input" name="snapclient" id="snapclient" value="active" <?php if ($config["CONFIG_SNAPCAST_CLIENT_ACTIVE"]) echo "checked"; ?>>
+								<label class="form-check-label" for="snapclient">Snapcast Client</label>
+							</div>
+							<div class="col-12 bd-callout bd-callout-info" id="snapclienthostdiv">
+								<label for="snapclienthost" class="form-label">Snapcast Server (IP/hostname)</label>
+								<input type="text" class="form-control" name="snapclienthost" id="snapclienthost" placeholder="ottercast2.local" value="<?php echo htmlspecialchars($config["CONFIG_SNAPCAST_CLIENT_HOST"]); ?>">
+								<div class="invalid-feedback">
+									Please enter a valid hostname or IP address.
+								</div>
+							</div>
+
 							<hr class="my-4">
 
-							<h4 class="mb-3">Line-In Streaming</h4>
-							<div class="mb-2 small">OtterCast is able to stream the Line-In port directly to another OtterCast or networked PulseAudio device.
-							Make sure "PulseAudio Sink" protocol is active on the receiver and set the correct target hostname. Avahi/mDNS can be used with the ".local" suffix.</div>
+							<h4 class="mb-3">Line-In Streaming (Snapcast Server)</h4>
+							<div class="mb-2 small bd-callout bd-callout-info">OtterCast is able to stream the Line-In port directly to another OtterCast or <a href="https://github.com/badaix/snapcast/" target="_blank">Snapcast Client</a>.<br>
+							Make sure "Snapcast Client" protocol is active on the receiver. <br>Avahi/mDNS can be used with the ".local" suffix.</div>
 							<div class="form-check">
 								<input type="checkbox" class="form-check-input mb-3" name="linein" id="linein" value="active" <?php if ($config["CONFIG_LINEIN_STREAM_ACTIVE"]) echo "checked"; ?>>
-								<label class="form-check-label" for="linein">Streaming active</label>
+								<label class="form-check-label" for="linein">Streaming server active</label>
 							</div>
-							<div class="col-12">
-									<label for="ssid" class="form-label">Target (IP/hostname)</label>
-									<input type="text" class="form-control" name="lineintarget" id="lineintarget" placeholder="ottercast2.local" value="<?php echo htmlspecialchars($config["CONFIG_LINEIN_STREAM_TARGET"]); ?>">
-									<div class="invalid-feedback">
-										Please enter a valid hostname or IP address.
-									</div>
-								</div>
+							
 
 							<hr class="my-4">
 
@@ -290,7 +328,35 @@ $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 			</footer>
 		</div>
 
+		<script
+			src="assets/jquery-3.5.1.min.js"
+			integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+		></script>
 		<script src="assets/bootstrap.bundle.min.js"></script>
 		<script src="assets/form-validation.js"></script>
+
+		<script type="text/javascript">
+			function eval_snapclient_checkbox()
+			{
+				var snapclienthostdiv = $('#snapclienthostdiv');
+				if($('#snapclient').is(':checked'))
+				{
+					snapclienthostdiv.show();
+					snapclienthostdiv.find('input').attr('required', true);
+				} else {
+					snapclienthostdiv.hide();
+					snapclienthostdiv.find('input').attr('required', false);
+				}
+			}
+
+			$(function()
+			{
+				var snapclienthostdiv = $('#snapclienthostdiv');
+				snapclienthostdiv.hide();
+
+				$('#snapclient').on('change', eval_snapclient_checkbox);
+				eval_snapclient_checkbox(); 
+			});
+		</script>
 	</body>
 </html>
