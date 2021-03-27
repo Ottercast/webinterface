@@ -1,0 +1,80 @@
+#!/usr/bin/env php-cgi
+<?php 
+require_once(__DIR__ . "/../../bootstrap.php");
+
+if (isset($_POST['ssid']))
+{
+	$hostname = preg_replace('/[^A-Za-z0-9\-]/', '', $_POST['hostname']);
+	$config['general']['hostname'] = $hostname;
+	$config['network']['wifi_ssid'] = $_POST['ssid'];
+	if (trim($_POST['psk']) !== "****")
+	{
+		$config['network']['wifi_passphrase'] = $_POST['psk'];
+	}
+
+	$config['software']['airplay_active'] = (bool)($_POST['airplay'] ?? false);
+	$config['software']['pulseaudio_active'] = (bool)($_POST['pulseaudio'] ?? false);
+	$config['software']['librespot_active'] = (bool)($_POST['librespot'] ?? false);
+	$config['software']['snapcast_client_active'] = (bool)($_POST['snapclient'] ?? false);
+	$config['software']['snapcast_client_hostname'] = $_POST['snapclienthost'] ?? '';
+	$config['software']['linein_stream_active'] = (bool)($_POST['linein'] ?? false);
+
+	save_config($config_file, $config);
+	`systemctl restart ottercast-config`;
+}
+
+// WiFi status
+$wifi_info = `iw wlan0 station dump`;
+preg_match_all( '/signal:.*?(\-[0-9]*)\s/m', $wifi_info, $matches, PREG_SET_ORDER, 0);
+
+$wifi_connected = false;
+if (count($matches))
+{
+	$wifi_connected = true; 
+
+	$wifi_rssi = $matches[0][1]; 
+
+	$wifi_data = json_decode(`ip -j address show dev wlan0`, true);
+	$wifi_ipv4 = "";
+	foreach ($wifi_data[0]["addr_info"] as $ipaddr)
+	{
+		if ($ipaddr['family'] == "inet")
+		{
+			$wifi_ipv4 .= $ipaddr["local"] . ", ";
+		}
+	}
+	$wifi_ipv4 = rtrim(trim($wifi_ipv4), ",");
+}
+
+// Ethernet status
+$ethernet = json_decode(`ip -j addr show dev eth0`, true);
+$ethernet_connected = ($ethernet[0]["operstate"] !== "DOWN");
+$ethernet_ipv4 = "";
+foreach ($ethernet[0]["addr_info"] as $ipaddr)
+{
+	if ($ipaddr['family'] == "inet")
+	{
+		$ethernet_ipv4 .= $ipaddr["local"] . ", ";
+	}
+}
+$ethernet_ipv4 = rtrim(trim($ethernet_ipv4), ",");
+
+// Load average
+$loadavg = explode(" ", file_get_contents("/proc/loadavg"));
+$loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
+
+echo $twig->render('setup.twig', [
+	'restarted_services' => ($restarted_services ?? false),
+	'config' => $config,
+	'post' => $_POST,
+	'status' => [
+		"wifi_connected" => $wifi_connected,
+		"wifi_rssi" => $wifi_rssi,
+		"wifi_ipv4" => $wifi_ipv4,
+
+		"ethernet_connected" => $ethernet_connected,
+		"ethernet_ipv4" => $ethernet_ipv4,
+
+		"loadavg" => $loadavg
+	]
+]);

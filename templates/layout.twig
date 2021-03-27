@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en">
+	<head>
+		<meta charset="utf-8">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<base href="/">
+
+		<title>OtterCastAudio</title>
+
+		<link rel="icon" type="image/svg+xml" href="/assets/logo.svg">
+
+		<!-- Bootstrap core CSS -->
+		<link href="assets/bootstrap.min.css" rel="stylesheet">
+
+		<!-- Ottercast GUI styles -->
+		<link href="assets/ottercast.css" rel="stylesheet">
+
+		<!-- Custom styles for this template -->
+		<link href="assets/form-validation.css" rel="stylesheet">
+	</head>
+	<body class="bg-light">
+		<header class="d-flex flex-column flex-md-row align-items-center p-3 px-md-4 mb-3 bg-body border-bottom shadow-sm">
+			<div class="mx-auto">
+				<a href="/cgi-bin/ottercast" class="text-decoration-none text-reset">
+					<img class="logo" src="assets/logo.svg" alt="meow :3" title="meow :3" height="100">
+					<span class="h1 logo-text">OtterCastAudio</span>
+				</a>
+			</div>
+		</header>
+			
+		<div class="container">
+			<main>
+				{% block content %}{% endblock %}
+			</main>
+
+			<footer class="my-5 pt-5 text-muted text-center text-small">
+				<p class="mb-1">&copy; 2020-2021 by<br>Jan Henrik Hemsig, Niklas Fauth,<br> Tobias Schramm, Tobias Mädel</p>
+				<br>
+				<ul class="list-inline">
+					<li class="list-inline-item"><a href="https://cast.otter.jetzt/" target="_blank">Homepage</a></li>
+					<li class="list-inline-item"><a href="https://github.com/Ottercast" target="_blank">GitHub</a></li>
+					<li class="list-inline-item"><a href="https://twitter.com/ottercastaudio" target="_blank">Twitter</a></li>
+				</ul>
+			</footer>
+		</div>
+		<script
+			src="assets/jquery-3.5.1.min.js"
+			integrity="sha256-9/aliU8dGd2tb6OSsuzixeV4y/faTqgFtohetphbbj0="
+		></script>
+		<script src="assets/bootstrap.bundle.min.js"></script>
+		<script src="assets/form-validation.js"></script>
+
+		{% block script %}{% endblock %}
+	</body>
+</html>
