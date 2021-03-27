@@ -1,0 +1,160 @@
+{% extends "layout.twig" %}
+
+{% block content %}
+	<div class="text-center">
+		<p class="lead"></p>
+	</div>
+
+	{% if post.ssid %}
+		<div class="alert alert-success" role="alert">
+		Configuration saved successfully!
+		</div>
+	{% endif %}
+
+	{% if restarted_services %}
+		<div class="alert alert-success" role="alert">
+		Restarted services to apply hostname change!
+		</div>
+	{% endif %}
+	
+	<div class="row g-3">
+		<div class="col-md-5 col-lg-4 order-md-last">
+			<h4 class="d-flex justify-content-between align-items-center mb-3">
+				<span class="text-muted">Status</span>
+			</h4>
+			<ul class="list-group mb-3">
+				<li class="list-group-item d-flex justify-content-between lh-sm">
+					<div>
+						<h6 class="my-0">WiFi</h6>
+						{% if status.wifi_connected %}
+							<small>connected, {{ status.wifi_rssi }}dBm, {{ status.wifi_ipv4 }}</small>
+						{% else %}
+							<small>not connected</small>
+						{% endif %}
+					</div>
+				</li>
+				<li class="list-group-item d-flex justify-content-between lh-sm">
+					<div>
+						<h6 class="my-0">Ethernet</h6>
+						{% if status.ethernet_connected %}
+							<small>connected, {{ status.ethernet_ipv4 }}</small>
+						{% else %}
+							<small>not connected</small>
+						{% endif %}
+					</div>
+				</li>
+				<li class="list-group-item d-flex justify-content-between lh-sm">
+					<div>
+						<h6 class="my-0">System load</h6>
+						<small>{{ status.loadavg }}</small>
+					</div>
+				</li>
+			</ul>
+		</div>
+		<div class="col-md-7 col-lg-8">
+			<form class="needs-validation" novalidate action="/cgi-bin/ottercast" method="POST" id="settingsform">
+				<div class="col-12">
+					<label for="hostname" class="form-label">Display name</label>
+					<input type="text" class="form-control" name="hostname" id="hostname" placeholder="OtterCast Bathroom"  value="{{ config.general.hostname }}" pattern="[A-Za-z0-9\-]{3,50}" required>
+					<div class="invalid-feedback">
+						Please enter a valid hostname.
+					</div>
+				</div>
+
+
+				<hr class="my-4">
+
+				<h4 class="mb-3">WiFi details</h4>
+
+				<div class="row g-3">
+					<div class="col-12">
+						<label for="ssid" class="form-label">Network name (SSID)</label>
+						<input type="text" class="form-control" name="ssid" id="ssid" placeholder="Pretty Fly for a Wi-Fi" value="{{ config.network.wifi_ssid }}" required>
+						<div class="invalid-feedback">
+							Please enter a valid network name (SSID).
+						</div>
+					</div>
+
+					<div class="col-12">
+						<label for="psk" class="form-label">Passphrase (PSK)</label>
+						<input type="password" class="form-control" name="psk" id="psk" placeholder="NeverGonnaGiveYouUp" value="****" required>
+						<div class="invalid-feedback">
+							Please enter your passphase (PSK).
+						</div>
+					</div>
+				</div>
+
+				<hr class="my-4">
+
+				<h4 class="mb-3">Protocols</h4>
+
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" name="airplay" id="airplay" value="active" {{ config.software.airplay_active ? 'checked' }}>
+					<label class="form-check-label" for="airplay">AirPlay (Shairport Sync)</label>
+				</div>
+
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" name="pulseaudio" id="pulseaudio" value="active" {{ config.software.pulseaudio_active ? 'checked' }}>
+					<label class="form-check-label" for="pulseaudio">PulseAudio Sink</label>
+				</div>
+
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" name="librespot" id="librespot" value="active" {{ config.software.librespot_active ? 'checked' }}>
+					<label class="form-check-label" for="librespot">Spotify Connect (librespot)</label>
+				</div>
+
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input" name="snapclient" id="snapclient" value="active" {{ config.software.snapcast_client_active ? 'checked' }}>
+					<label class="form-check-label" for="snapclient">Snapcast Client</label>
+				</div>
+				<div class="col-12 bd-callout bd-callout-info" id="snapclienthostdiv">
+					<label for="snapclienthost" class="form-label">Snapcast Server (IP/hostname)</label>
+					<input type="text" class="form-control" name="snapclienthost" id="snapclienthost" placeholder="ottercast2.local" value="{{ config.software.snapcast_client_hostname}}">
+					<div class="invalid-feedback">
+						Please enter a valid hostname or IP address.
+					</div>
+				</div>
+
+				<hr class="my-4">
+
+				<h4 class="mb-3">Line-In Streaming (Snapcast Server)</h4>
+				<div class="mb-2 small bd-callout bd-callout-info">OtterCast is able to stream the Line-In port directly to another OtterCast or <a href="https://github.com/badaix/snapcast/" target="_blank">Snapcast Client</a>.<br>
+				Make sure "Snapcast Client" protocol is active on the receiver. <br>Avahi/mDNS can be used with the ".local" suffix.</div>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input mb-3" name="linein" id="linein" value="active" {{ config.software.linein_stream_active ? 'checked' }}>
+					<label class="form-check-label" for="linein">Streaming server active</label>
+				</div>
+				
+				<hr class="my-4">
+
+				<button class="w-100 btn btn-success btn-lg" type="submit">Save settings</button>
+			</form>
+		</div>
+	</div>
+{% endblock %}
+
+{% block script %}
+	<script type="text/javascript">
+		function eval_snapclient_checkbox()
+		{
+			var snapclienthostdiv = $('#snapclienthostdiv');
+			if($('#snapclient').is(':checked'))
+			{
+				snapclienthostdiv.show();
+				snapclienthostdiv.find('input').attr('required', true);
+			} else {
+				snapclienthostdiv.hide();
+				snapclienthostdiv.find('input').attr('required', false);
+			}
+		}
+
+		$(function()
+		{
+			var snapclienthostdiv = $('#snapclienthostdiv');
+			snapclienthostdiv.hide();
+
+			$('#snapclient').on('change', eval_snapclient_checkbox);
+			eval_snapclient_checkbox(); 
+		});
+	</script>
+{% endblock %}
