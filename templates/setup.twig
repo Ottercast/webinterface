@@ -50,6 +50,16 @@
 					</div>
 				</li>
 			</ul>
+			{% if status.is_ottercast_amp %}
+				<ul class="list-group mb-3">
+					<li class="list-group-item d-flex justify-content-between lh-sm">
+						<div>
+							<h6 class="my-0">Amplifier temperature</h6>
+							<small>{{ status.amplifier_temp }} °C</small>
+						</div>
+					</li>
+				</ul>
+			{% endif %}
 		</div>
 		<div class="col-md-7 col-lg-8">
 			<form class="needs-validation" novalidate action="/cgi-bin/ottercast" method="POST" id="settingsform">

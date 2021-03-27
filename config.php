@@ -3,6 +3,10 @@ $config_file = "/mnt/config.ini";
 $default_config_file = __DIR__ . "/example_config.ini";
 $ssh_key_file = "/mnt/ssh_authorized_keys";
 
+$model = trim(file_get_contents("/proc/device-tree/model")) ?? 'Unknown hardware';
+$is_ottercast_amp = (bool) ($model == "OtterCast Amp");
+$is_ottercast_audio = (bool) ($model == "OtterCast Audio V2");
+
 $config = load_config($config_file, $default_config_file);
 
 function load_config(string $config_file, string $default_config_file): array

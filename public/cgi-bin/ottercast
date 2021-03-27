@@ -63,6 +63,14 @@ $ethernet_ipv4 = rtrim(trim($ethernet_ipv4), ",");
 $loadavg = explode(" ", file_get_contents("/proc/loadavg"));
 $loadavg = $loadavg[0] . ", " . $loadavg[1] . ", " . $loadavg[2];
 
+if ($is_ottercast_amp)
+{
+	// Ottercast Amp has a LM75B temperature sensor
+	$amplifier_temp = trim(file_get_contents("/sys/class/hwmon/hwmon0/temp1_input")); 
+	$amplifier_temp = ($amplifier_temp / 1000.0);
+	$amplifier_temp = number_format($amplifier_temp, 2);
+}
+
 echo $twig->render('setup.twig', [
 	'restarted_services' => ($restarted_services ?? false),
 	'config' => $config,
@@ -75,6 +83,10 @@ echo $twig->render('setup.twig', [
 		"ethernet_connected" => $ethernet_connected,
 		"ethernet_ipv4" => $ethernet_ipv4,
 
-		"loadavg" => $loadavg
+		"loadavg" => $loadavg,
+		"is_ottercast_amp" => $is_ottercast_amp,
+		"is_ottercast_audio" => $is_ottercast_audio,
+
+		"amplifier_temp" => $amplifier_temp ?? ''
 	]
 ]);
