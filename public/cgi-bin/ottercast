@@ -76,16 +76,16 @@ echo $twig->render('setup.twig', [
 	'config' => $config,
 	'post' => $_POST,
 	'status' => [
-		"wifi_connected" => $wifi_connected,
-		"wifi_rssi" => $wifi_rssi,
-		"wifi_ipv4" => $wifi_ipv4,
+		"wifi_connected" => $wifi_connected ?? false,
+		"wifi_rssi" => $wifi_rssi ?? '',
+		"wifi_ipv4" => $wifi_ipv4 ?? '',
 
-		"ethernet_connected" => $ethernet_connected,
-		"ethernet_ipv4" => $ethernet_ipv4,
+		"ethernet_connected" => $ethernet_connected ?? false,
+		"ethernet_ipv4" => $ethernet_ipv4 ?? '',
 
-		"loadavg" => $loadavg,
-		"is_ottercast_amp" => $is_ottercast_amp,
-		"is_ottercast_audio" => $is_ottercast_audio,
+		"loadavg" => $loadavg ?? '',
+		"is_ottercast_amp" => $is_ottercast_amp ?? false,
+		"is_ottercast_audio" => $is_ottercast_audio ?? false,
 
 		"amplifier_temp" => $amplifier_temp ?? ''
 	]
