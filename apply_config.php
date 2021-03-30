@@ -5,20 +5,14 @@ require(__DIR__ . "/config.php");
 
 $snapclient_config_path = "/etc/default/snapclient";
 $wpaconf_path = "/etc/wpa_supplicant/wpa_supplicant-wlan0.conf";
-$ssh_system_authorized_keys = "/root/.ssh/authorized_keys";
 
+// Line-In Ottercast Audio
 // 23 == 0dB capture gain
 `amixer cset name='Capture Volume' 23`;
 
-if (file_exists($ssh_key_file))
-{
-	if (file_get_contents($ssh_system_authorized_keys) != file_get_contents($ssh_key_file))
-	{
-		@mkdir(dirname($ssh_system_authorized_keys));
-		file_put_contents($ssh_system_authorized_keys, file_get_contents($ssh_key_file));
-		chmod($ssh_system_authorized_keys, 0700);
-	}
-}
+// Class-D Codec on Ottercast Amp
+`amixer cset name='Speaker Driver Playback Volume' 640`;
+`amixer cset name='Speaker Driver Analog Gain' 0`;
 
 if ($config['software']["airplay_active"])
 {
