@@ -1,10 +1,8 @@
 <?php
 require(__DIR__ . "/config.php");
 
-`mount -o remount,rw /`;
-
-$snapclient_config_path = "/etc/default/snapclient";
-$wpaconf_path = "/etc/wpa_supplicant/wpa_supplicant-wlan0.conf";
+$snapclient_config_path = "/tmp/snapclient_env";
+$wpaconf_path = "/tmp/wpa_supplicant-wlan0.conf";
 
 // Line-In Ottercast Audio
 // 23 == 0dB capture gain
@@ -120,5 +118,3 @@ if (trim(file_get_contents("/etc/hostname")) != trim($config['general']["hostnam
 		`systemctl restart snapserver`;
 	}
 }
-
-`mount -o remount,ro /`;
