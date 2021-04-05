@@ -14,7 +14,7 @@ if (isset($_POST['ssid']))
 
 	$config['software']['airplay_active'] = (bool)($_POST['airplay'] ?? false);
 	$config['software']['pulseaudio_active'] = (bool)($_POST['pulseaudio'] ?? false);
-	$config['software']['librespot_active'] = (bool)($_POST['librespot'] ?? false);
+	$config['software']['spotifyd_active'] = (bool)($_POST['spotifyd'] ?? false);
 	$config['software']['snapcast_client_active'] = (bool)($_POST['snapclient'] ?? false);
 	$config['software']['snapcast_client_hostname'] = $_POST['snapclienthost'] ?? '';
 	$config['software']['linein_stream_active'] = (bool)($_POST['linein'] ?? false);

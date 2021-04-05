@@ -30,13 +30,13 @@ else
 	`systemctl stop pulseaudio`;
 }
 
-if ($config['software']["librespot_active"])
+if ($config['software']["spotifyd_active"])
 {
-	`systemctl start librespot`;
+	`systemctl start spotifyd`;
 }
 else
 {
-	`systemctl stop librespot`;
+	`systemctl stop spotifyd`;
 }
 
 if ($config['software']["linein_stream_active"])
@@ -92,9 +92,11 @@ else
 
 if (trim(file_get_contents("/etc/hostname")) != trim($config['general']["hostname"]))
 {
-	$cmd = 'hostnamectl set-hostname ' . escapeshellarg($config['general']["hostname"]);
+	file_put_contents("/etc/hostname", $config['general']["hostname"]);
+	$cmd = 'hostname ' . escapeshellarg($config['general']["hostname"]);
 	`$cmd`;
-
+	`systemctl daemon-reload`;
+	
 	`systemctl restart avahi-daemon`;
 
 	if ($config['software']["pulseaudio_active"])
@@ -105,9 +107,9 @@ if (trim(file_get_contents("/etc/hostname")) != trim($config['general']["hostnam
 	{
 		`systemctl restart shairport-sync`;
 	}
-	if ($config['software']["librespot_active"])
+	if ($config['software']["spotifyd_active"])
 	{
-		`systemctl restart librespot`;
+		`systemctl restart spotifyd`;
 	}
 	if ($config['software']["snapcast_client_active"])
 	{
