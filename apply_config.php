@@ -67,9 +67,11 @@ else
 	`systemctl stop snapclient`;
 }
 
+$country = strtoupper(substr(preg_replace("/[^ \w]+/", "", $config['network']["wifi_country"] ?? '00'), 0, 2));
+
 $wpaconf = 'ctrl_interface=/var/run/wpa_supplicant
 #ap_scan=1
-country="'. addslashes($config['network']["wifi_country"] ?? '00') .'"
+country='. $country .'
 
 network={
 		ssid="'. addslashes($config['network']["wifi_ssid"]) .'"
