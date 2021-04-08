@@ -14,7 +14,8 @@ function load_config(string $config_file, string $default_config_file): array
 	// evil hack
 	if (!file_exists($config_file))
 	{
-		`mount -o ro /dev/mmcblk0p1 /mnt`;
+		$cmd = "mount -o ro " . escapeshellarg(find_config_partition()) . " /mnt";
+		`$cmd`;
 	}
 
 	$config = parse_ini_file ( $config_file , true , INI_SCANNER_TYPED );
@@ -34,8 +35,9 @@ function save_config(string $config_file, array $config): bool
 		// configuration has changed
 
 		// even more evil hack
-		`mount -o rw /dev/mmcblk0p1 /mnt`;
-		`mount -o remount,rw /dev/mmcblk0p1`;
+		$configpartition = escapeshellarg(find_config_partition());
+		`mount -o rw $configpartition /mnt`;
+		`mount -o remount,rw $configpartition`;
 
 		file_put_contents($config_file, $config_string);
 
@@ -44,6 +46,25 @@ function save_config(string $config_file, array $config): bool
 	}
 
 	return false;
+}
+
+function find_config_partition()
+{
+	$matches = [];
+	$re = '/(\/dev\/mmcblk[0-9]+p)([0-9+]) on \/ type /m';
+	$mountpoints = `mount`; 
+	preg_match_all($re, $mountpoints, $matches, PREG_SET_ORDER, 0);
+
+	if (!isset($matches[0][2]))
+	{
+		error_log("Could not determine config partition! Stopping!");
+		die();
+	}
+
+	$partitionID = ((int)$matches[0][2]) - 1;
+	$device = $matches[0][1];
+
+	return $device . (string)$partitionID;
 }
 
 function create_ini_string ( array $config ): string
