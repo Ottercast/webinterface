@@ -6,11 +6,12 @@ $wpaconf_path = "/tmp/wpa_supplicant-wlan0.conf";
 
 // Line-In Ottercast Audio
 // 23 == 0dB capture gain
-`amixer cset name='Capture Volume' 23`;
+`amixer -c "OtterAudioCard" cset name='Capture Volume' 23`;
 
 // Class-D Codec on Ottercast Amp
-`amixer cset name='Speaker Driver Playback Volume' 640`;
-`amixer cset name='Speaker Driver Analog Gain' 0`;
+`amixer -c "Codec" cset name='Line In Capture Switch' on`;
+`amixer -c "OtterAudioCard" cset name='Speaker Driver Playback Volume' 640`;
+`amixer -c "OtterAudioCard" cset name='Speaker Driver Analog Gain' 0`;
 
 if ($config['software']["airplay_active"])
 {
