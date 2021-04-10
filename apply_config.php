@@ -1,17 +1,28 @@
 <?php
-require(__DIR__ . "/config.php");
+require(__DIR__ . "/lib/config.php");
+
+$config = ConfigService::current()->config;
 
 $snapclient_config_path = "/tmp/snapclient_env";
 $wpaconf_path = "/tmp/wpa_supplicant-wlan0.conf";
 
-// Line-In Ottercast Audio
-// 23 == 0dB capture gain
-`amixer -c "OtterAudioCard" cset name='Capture Volume' 23`;
+if ($config['software']["usbaudio_active"] && 
+	!file_exists("/sys/kernel/config/usb_gadget/g1/configs/audio.1/"))
+{
+	$init = realpath(__DIR__ . "/init_usbaudio.sh");
+	`$init`;
+}
 
-// Class-D Codec on Ottercast Amp
-`amixer -c "Codec" cset name='Line In Capture Switch' on`;
-`amixer -c "OtterAudioCard" cset name='Speaker Driver Playback Volume' 640`;
-`amixer -c "OtterAudioCard" cset name='Speaker Driver Analog Gain' 0`;
+$alsaService = new AlsaService();
+$pulseAudioService = new PulseAudioService();
+
+$alsaService->configure_alsa_mixers();
+$pulseAudioService->configure_pulseaudio();
+
+`systemctl start pulseaudio`;
+
+// will block until PulseAudio is fully loaded 
+$pulseAudioService->get_sources();
 
 if ($config['software']["airplay_active"])
 {
@@ -20,15 +31,6 @@ if ($config['software']["airplay_active"])
 else
 {
 	`systemctl stop shairport-sync`;
-}
-
-if ($config['software']["pulseaudio_active"])
-{
-	`systemctl start pulseaudio`;
-}
-else
-{
-	`systemctl stop pulseaudio`;
 }
 
 if ($config['software']["spotifyd_active"])
@@ -102,11 +104,8 @@ if (trim(file_get_contents("/etc/hostname")) != trim($config['general']["hostnam
 	`systemctl daemon-reload`;
 	
 	`systemctl restart avahi-daemon`;
+	`systemctl restart pulseaudio`;
 
-	if ($config['software']["pulseaudio_active"])
-	{
-		`systemctl restart pulseaudio`;
-	}
 	if ($config['software']["airplay_active"])
 	{
 		`systemctl restart shairport-sync`;

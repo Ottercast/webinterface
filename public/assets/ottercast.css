@@ -61,3 +61,7 @@ label.form-check-label {
 .bd-callout-danger {
 	border-left-color: #d9534f
 }
+
+.otter-bg-danger {
+	background-color: hsl(2deg 100% 92%);
+}

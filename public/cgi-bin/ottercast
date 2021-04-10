@@ -2,6 +2,9 @@
 <?php 
 require_once(__DIR__ . "/../../bootstrap.php");
 
+$configService = ConfigService::current();
+$config = $configService->config;
+
 if (isset($_POST['ssid']))
 {
 	$hostname = preg_replace('/[^A-Za-z0-9\-]/', '', $_POST['hostname']);
@@ -18,8 +21,9 @@ if (isset($_POST['ssid']))
 	$config['software']['snapcast_client_active'] = (bool)($_POST['snapclient'] ?? false);
 	$config['software']['snapcast_client_hostname'] = $_POST['snapclienthost'] ?? '';
 	$config['software']['linein_stream_active'] = (bool)($_POST['linein'] ?? false);
+	$config['software']['usbaudio_active'] = (bool)($_POST['usbaudio'] ?? false);
 
-	save_config($config_file, $config);
+	$configService->save_config($config_file, $config);
 	`systemctl restart ottercast-config`;
 }
 
