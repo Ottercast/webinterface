@@ -67,11 +67,7 @@ class PulseAudioService
 		    'cache' => '/tmp/twig_cache',
 		]);
 
-		$parameters = [
-			"pulseaudio_devices" => ConfigService::current()->device['pulseaudio_devices'],
-		];
-
-		file_put_contents("/tmp/system.pa", $twig->render('system.pa.twig', $parameters));
-		file_put_contents("/tmp/daemon.conf", $twig->render('daemon.conf.twig', $parameters));
+		file_put_contents("/tmp/system.pa", $twig->render('system.pa.twig', ConfigService::current()->device));
+		file_put_contents("/tmp/daemon.conf", $twig->render('daemon.conf.twig', ConfigService::current()->device));
 	}
 }
