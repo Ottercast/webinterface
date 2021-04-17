@@ -1,5 +1,5 @@
 <?php
-define("SERVER_PATH", realpath(__DIR__ . "/../")); 
+define("SERVER_PATH", realpath(__DIR__ . "/../"));
 
 spl_autoload_register(function ($class)
 {
@@ -19,13 +19,14 @@ $devices = [
 		"pulseaudio_devices" => [
 			["type" => "sink",	"device" => "OtterAudioCard",	"name" => "Speakers"],
 			["type" => "source",	"device" => "Codec",		"name" => "LineIn"],
-			
 		],
 		"pulseaudio_loopbacks" => [],
 		"amixer" => [
 			["card" => "Codec", "name" => "Line In Capture Switch", "value" => "on"],
-			["card" => "OtterAudioCard", "name" => "Speaker Driver Playback Volume", "value" => "640"],
-			["card" => "OtterAudioCard", "name" => "Speaker Driver Analog Gain", "value" => "0"],
+			["card" => "OtterAudioCard", "name" => "main Speaker Driver Playback Volume", "value" => "640"],
+			["card" => "OtterAudioCard", "name" => "main Speaker Driver Analog Gain", "value" => "0"],
+			["card" => "OtterAudioCard", "name" => "woofer Speaker Driver Playback Volume", "value" => "640"],
+			["card" => "OtterAudioCard", "name" => "woofer Speaker Driver Analog Gain", "value" => "0"],
 		]
 	],
 	"OtterCast Audio V2" => [
@@ -46,7 +47,7 @@ if ($configService->config['software']["usbaudio_active"])
 {
 	$devices["OtterCast Amp"]["pulseaudio_devices"][] = ["type" => "source", "device" => "UAC1Gadget", "name" => "USBAudio"];
 	$devices["OtterCast Audio V2"]["pulseaudio_devices"][] = ["type" => "source", "device" => "UAC1Gadget", "name" => "USBAudio"];
-	
+
 	$devices["OtterCast Amp"]["pulseaudio_loopbacks"][] = ["source" => "USBAudio", "sink" => "Speakers"];
 	$devices["OtterCast Audio V2"]["pulseaudio_loopbacks"][] = ["source" => "USBAudio", "sink" => "Speakers"];
 }
