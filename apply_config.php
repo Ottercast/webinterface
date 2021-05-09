@@ -22,7 +22,10 @@ $pulseAudioService->configure_pulseaudio();
 `systemctl start pulseaudio`;
 
 // will block until PulseAudio is fully loaded 
-$pulseAudioService->get_sources();
+while (count($pulseAudioService->get_sources()) == 0)
+{
+	
+}
 
 if ($config['software']["airplay_active"])
 {
@@ -123,3 +126,6 @@ if (trim(file_get_contents("/etc/hostname")) != trim($config['general']["hostnam
 		`systemctl restart snapserver`;
 	}
 }
+
+`systemctl stop ottercast-displayboot`;
+`systemctl start ottercast-frontend`;
