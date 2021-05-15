@@ -9,6 +9,7 @@ if (isset($_POST['ssid']))
 {
 	$hostname = preg_replace('/[^A-Za-z0-9\-]/', '', $_POST['hostname']);
 	$config['general']['hostname'] = $hostname;
+	$config['general']['subwoofer_active'] = (bool)($_POST['subwoofer'] ?? false);
 	$config['network']['wifi_ssid'] = $_POST['ssid'];
 	if (trim($_POST['psk']) !== "****")
 	{

@@ -92,6 +92,17 @@ class ConfigService
 		return $result;
 	}
 
+	public function put_file_if_different(string $filename, string $content): bool
+	{
+		if (trim(file_get_contents($filename)) != trim($content))
+		{
+			file_put_contents($filename, $content);
+			return true;
+		}
+
+		return false; 
+	}
+
 	// singleton
 	public static function current()
 	{

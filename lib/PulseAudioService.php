@@ -66,8 +66,21 @@ class PulseAudioService
 		$twig = new \Twig\Environment($loader, [
 		    'cache' => '/tmp/twig_cache',
 		]);
+		$configService = ConfigService::current();
 
-		file_put_contents("/tmp/system.pa", $twig->render('system.pa.twig', ConfigService::current()->device));
-		file_put_contents("/tmp/daemon.conf", $twig->render('daemon.conf.twig', ConfigService::current()->device));
+		$restartPA = $configService->put_file_if_different("/tmp/system.pa", $twig->render('system.pa.twig', ConfigService::current()->device));
+		$restartPA = $restartPA || $configService->put_file_if_different("/tmp/daemon.conf", $twig->render('daemon.conf.twig', ConfigService::current()->device));
+
+		if ($restartPA)
+		{
+			`systemctl restart pulseaudio`;
+
+			// will block until PulseAudio is fully loaded 
+			while (count($this->get_sources()) == 0)
+			{
+				error_log("Waiting for PulseAudio...");
+				usleep(500 * 1000);
+			}
+		}
 	}
 }

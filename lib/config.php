@@ -23,10 +23,10 @@ $devices = [
 		"pulseaudio_loopbacks" => [],
 		"amixer" => [
 			["card" => "Codec", "name" => "Line In Capture Switch", "value" => "on"],
-			["card" => "OtterAudioCard", "name" => "main Speaker Driver Playback Volume", "value" => "640"],
-			["card" => "OtterAudioCard", "name" => "main Speaker Driver Analog Gain", "value" => "0"],
-			["card" => "OtterAudioCard", "name" => "woofer Speaker Driver Playback Volume", "value" => "640"],
-			["card" => "OtterAudioCard", "name" => "woofer Speaker Driver Analog Gain", "value" => "0"],
+			["card" => "OtterAudioCard", "name" => "main Speaker Driver Playback Volume", "value" => "207"],
+			["card" => "OtterAudioCard", "name" => "main Speaker Driver Analog Gain", "value" => "17"],
+			["card" => "OtterAudioCard", "name" => "woofer Speaker Driver Playback Volume", "value" => "207"],
+			["card" => "OtterAudioCard", "name" => "woofer Speaker Driver Analog Gain", "value" => "17"],
 		]
 	],
 	"OtterCast Audio V2" => [

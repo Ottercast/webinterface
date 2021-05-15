@@ -1,11 +1,16 @@
 <?php
 require(__DIR__ . "/lib/config.php");
 
-$config = ConfigService::current()->config;
+$configService = ConfigService::current();
+$config = $configService->config;
 
 $snapclient_config_path = "/tmp/snapclient_env";
 $wpaconf_path = "/tmp/wpa_supplicant-wlan0.conf";
 
+$firstconfig = !file_exists("/tmp/config_done");
+file_put_contents("/tmp/config_done", "");
+
+// USB audio (experimental)
 if ($config['software']["usbaudio_active"] && 
 	!file_exists("/sys/kernel/config/usb_gadget/g1/configs/audio.1/"))
 {
@@ -13,18 +18,39 @@ if ($config['software']["usbaudio_active"] &&
 	`$init`;
 }
 
+// Subwoofer support (experimental)
+if ($config['general']["subwoofer_active"])
+{
+	foreach (explode("\n", file_get_contents(__DIR__ . "/subwoofer_regmap.dump")) as $regentry)
+	{
+		file_put_contents("/sys/kernel/debug/regmap/0-004d/registers", $regentry . "\n");
+	}
+}
+else
+{
+	// TAS5825M - DEVICE_CTRL2, CTRL_STATE 00 -> Deep sleep
+	file_put_contents("/sys/kernel/debug/regmap/0-004d/registers", "000003 00" . "\n");
+}
+
 $alsaService = new AlsaService();
 $pulseAudioService = new PulseAudioService();
 
-$alsaService->configure_alsa_mixers();
-$pulseAudioService->configure_pulseaudio();
-
-`systemctl start pulseaudio`;
-
-// will block until PulseAudio is fully loaded 
-while (count($pulseAudioService->get_sources()) == 0)
+if ($firstconfig)
 {
+	$alsaService->configure_alsa_mixers();
+}
+
+if ($configService->put_file_if_different("/etc/hostname", $config['general']["hostname"]))
+{
+	$cmd = 'hostname ' . escapeshellarg($config['general']["hostname"]);
+	`$cmd`;
+	`systemctl daemon-reload`;
+
+	file_put_contents("/etc/hosts", "127.0.0.1	localhost\n");
+	file_put_contents("/etc/hosts", "127.0.1.1	" . $config['general']["hostname"] . "\n", FILE_APPEND);
 	
+	`systemctl restart avahi-daemon`;
+	$pulseAudioService->configure_pulseaudio();
 }
 
 if ($config['software']["airplay_active"])
@@ -58,9 +84,9 @@ if ($config['software']["snapcast_client_active"])
 {
 	$snapclient_config = 'START_SNAPCLIENT=true' . "\n" .
 			     'SNAPCLIENT_OPTS="-h ' . escapeshellarg($config['software']["snapcast_client_hostname"]) . '"' . "\n";
-	if (file_get_contents($snapclient_config_path) != $snapclient_config)
+
+	if ($configService->put_file_if_different($snapclient_config_path, $snapclient_config))
 	{
-		file_put_contents($snapclient_config_path, $snapclient_config);
 		`systemctl restart snapclient`;
 	}
 	else
@@ -74,7 +100,6 @@ else
 }
 
 $country = strtoupper(substr(preg_replace("/[^ \w]+/", "", $config['network']["wifi_country"] ?? '00'), 0, 2));
-
 $wpaconf = 'ctrl_interface=/var/run/wpa_supplicant
 #ap_scan=1
 country='. $country .'
@@ -87,9 +112,9 @@ network={
 }
 ';
 
-if (file_get_contents($wpaconf_path) != $wpaconf)
+if ($configService->put_file_if_different($wpaconf_path, $wpaconf))
 {
-	file_put_contents($wpaconf_path, $wpaconf);
+	error_log("Restarting WiFi");
 	`ifdown --force wlan0`;
 	`systemctl restart network`;
 	`ifup wlan0`;
@@ -99,33 +124,9 @@ else
 	`ifup wlan0`;
 }
 
-if (trim(file_get_contents("/etc/hostname")) != trim($config['general']["hostname"]))
+if ($firstconfig)
 {
-	file_put_contents("/etc/hostname", $config['general']["hostname"]);
-	$cmd = 'hostname ' . escapeshellarg($config['general']["hostname"]);
-	`$cmd`;
-	`systemctl daemon-reload`;
-	
-	`systemctl restart avahi-daemon`;
-	`systemctl restart pulseaudio`;
-
-	if ($config['software']["airplay_active"])
-	{
-		`systemctl restart shairport-sync`;
-	}
-	if ($config['software']["spotifyd_active"])
-	{
-		`systemctl restart spotifyd`;
-	}
-	if ($config['software']["snapcast_client_active"])
-	{
-		`systemctl restart snapclient`;
-	}
-	if ($config['software']["linein_stream_active"])
-	{
-		`systemctl restart snapserver`;
-	}
+	`systemctl stop ottercast-displayboot`;
+	`systemctl start ottercast-frontend`;
 }
 
-`systemctl stop ottercast-displayboot`;
-`systemctl start ottercast-frontend`;
