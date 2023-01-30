@@ -24,4 +24,5 @@ cd /sys/kernel/config/usb_gadget/g1
 mkdir functions/uac1.0
 
 ln -s functions/uac1.0/ configs/audio.1/
-echo "musb-hdrc.1.auto" > UDC
+udcdev="$(echo /sys/class/udc/*)"
+echo "${udcdev##*/}" > UDC
