@@ -29,7 +29,7 @@ if (isset($_POST['ssid']))
 }
 
 // WiFi status
-$wifi_info = `iw wlan0 station dump`;
+$wifi_info = `iw wlan0 station dump` ?? '';
 preg_match_all( '/signal:.*?(\-[0-9]*)\s/m', $wifi_info, $matches, PREG_SET_ORDER, 0);
 
 $wifi_connected = false;
