@@ -14,7 +14,7 @@ class PulseAudioService
 	public function get_list(string $type): array
 	{
 		$type_esc = escapeshellarg($type);
-		$list_raw = `pactl list $type_esc`;
+		$list_raw = `PULSE_SERVER=127.0.0.1 pactl list $type_esc`;
 		$return = []; 
 
 		if ($type == "sources")
@@ -68,8 +68,8 @@ class PulseAudioService
 		]);
 		$configService = ConfigService::current();
 
-		$restartPA = $configService->put_file_if_different("/tmp/system.pa", $twig->render('system.pa.twig', ConfigService::current()->device));
-		$restartPA = $restartPA || $configService->put_file_if_different("/tmp/daemon.conf", $twig->render('daemon.conf.twig', ConfigService::current()->device));
+		$restartPA = $configService->put_file_if_different("/tmp/default.pa", $twig->render('default.pa.twig', ConfigService::current()->device));
+		$restartPA |= $configService->put_file_if_different("/tmp/daemon.conf", $twig->render('daemon.conf.twig', ConfigService::current()->device));
 
 		if ($restartPA)
 		{

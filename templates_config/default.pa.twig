@@ -1,0 +1,32 @@
+#!/usr/bin/pulseaudio -nF
+#
+# This file is part of Ottercast. Nyaa~~ :3
+
+### Automatically restore the volume of streams and devices
+load-module module-device-restore
+load-module module-stream-restore
+load-module module-card-restore
+
+# Load ALSA devices manually (to ensure order and defaults)
+{% for device in pulseaudio_devices %}
+load-module module-alsa-{{ device.type }} device=default:CARD={{ device.device }} {{ device.type }}_name={{ device.name }} {{ device.type }}_properties=device.description={{ device.name }}
+{% endfor %}
+
+### Load several protocols
+.ifexists module-esound-protocol-unix.so
+load-module module-esound-protocol-unix
+.endif
+load-module module-native-protocol-unix auth-anonymous=1
+
+load-module module-default-device-restore
+load-module module-rescue-streams
+load-module module-always-sink
+load-module module-suspend-on-idle
+load-module module-position-event-sounds
+
+load-module module-native-protocol-tcp auth-anonymous=1
+load-module module-zeroconf-publish
+
+{% for loopback in pulseaudio_loopbacks %}
+load-module module-loopback latency_msec=100 source={{ loopback.source }} sink={{ loopback.sink }}
+{% endfor %}
