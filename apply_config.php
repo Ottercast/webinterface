@@ -6,16 +6,32 @@ $config = $configService->config;
 
 $snapclient_config_path = "/tmp/snapclient_env";
 $wpaconf_path = "/tmp/wpa_supplicant-wlan0.conf";
+$config_file = "/mnt/config.ini";
 
 $firstconfig = !file_exists("/tmp/config_done");
 file_put_contents("/tmp/config_done", "");
 
 if ($firstconfig)
 {
-	`mkdir /tmp/otter-home`;
-	`mkdir /tmp/otter-home/.config`;
-	`mkdir /tmp/otter-home/.config/pulse`;
+	`mkdir -p /tmp/otter-home/.config/pulse`;
 	`chown -hR otter:otter /tmp/otter-home`;
+
+	$dropbear_key_path = "/etc/dropbear/dropbear_ed25519_host_key";
+	// check if we already have SSH hostkeys
+	if (isset($config['ssh']["hostkey"]) && $config['ssh']["hostkey"] != "")
+	{
+		file_put_contents($dropbear_key_path, base64_decode($config['ssh']["hostkey"]));
+		`systemctl restart dropbear`;
+	}
+	else
+	{
+		@unlink($dropbear_key_path);
+		`dropbearkey -t ed25519 -f $dropbear_key_path`;
+		$configService->config['ssh'] = [];
+		$configService->config['ssh']["hostkey"] = base64_encode(file_get_contents($dropbear_key_path));
+		$configService->save_config($config_file, $configService->config);
+		`systemctl restart dropbear`;
+	}
 }
 
 // USB audio (experimental)
