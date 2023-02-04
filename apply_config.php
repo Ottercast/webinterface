@@ -10,6 +10,14 @@ $wpaconf_path = "/tmp/wpa_supplicant-wlan0.conf";
 $firstconfig = !file_exists("/tmp/config_done");
 file_put_contents("/tmp/config_done", "");
 
+if ($firstconfig)
+{
+	`mkdir /tmp/otter-home`;
+	`mkdir /tmp/otter-home/.config`;
+	`mkdir /tmp/otter-home/.config/pulse`;
+	`chown -hR otter:otter /tmp/otter-home`;
+}
+
 // USB audio (experimental)
 if ($config['software']["usbaudio_active"] && 
 	!file_exists("/sys/kernel/config/usb_gadget/g1/configs/audio.1/"))
