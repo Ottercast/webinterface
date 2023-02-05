@@ -133,13 +133,13 @@
 
 				<div class="form-check">
 					<input type="checkbox" class="form-check-input" name="usbaudio" id="usbaudio" value="active" {{ config.software.usbaudio_active ? 'checked' }}>
-					<label class="form-check-label" for="usbaudio">USB sound card (device mode, experimental)</label>
+					<label class="form-check-label" for="usbaudio">USB sound card (device mode)</label>
 				</div>
-				<div class="col-12 bd-callout bd-callout-danger otter-bg-danger" id="usbaudiodiv">
+				<!--<div class="col-12 bd-callout bd-callout-danger otter-bg-danger" id="usbaudiodiv">
 					<strong>Warning!</strong> USB sound card mode is very experimental. <br>Works on macOS, iOS, Windows. Doesn't work with Linux/snd_usb_audio.<br>
 					Please don't create issues about this. Pull Requests are welcome!<br><br>
 					OtterCast has to resample incoming USB audio to the on-board 48kHz reference. <br>This can cause high CPU load!
-				</div>
+				</div>-->
 
 				<hr class="my-4">
 
@@ -174,7 +174,7 @@
 			}
 		}
 
-		function eval_usbaudio_checkbox()
+		/*function eval_usbaudio_checkbox()
 		{
 			var usbaudiodiv = $('#usbaudiodiv');
 			if($('#usbaudio').is(':checked'))
@@ -183,7 +183,7 @@
 			} else {
 				usbaudiodiv.hide();
 			}
-		}
+		}*/
 
 		$(function()
 		{
@@ -196,8 +196,8 @@
 			var usbaudiodiv = $('#usbaudiodiv');
 			usbaudiodiv.hide();
 
-			$('#usbaudio').on('change', eval_usbaudio_checkbox);
-			eval_usbaudio_checkbox(); 
+			//$('#usbaudio').on('change', eval_usbaudio_checkbox);
+			//eval_usbaudio_checkbox();
 		});
 	</script>
 {% endblock %}
