@@ -9,7 +9,7 @@ load-module module-card-restore
 
 # Load ALSA devices manually (to ensure order and defaults)
 {% for device in pulseaudio_devices %}
-load-module module-alsa-{{ device.type }} device=default:CARD={{ device.device }} {{ device.type }}_name={{ device.name }} {{ device.type }}_properties=device.description={{ device.name }}
+load-module module-alsa-{{ device.type }} device=sysdefault:CARD={{ device.device }} {{ device.type }}_name={{ device.name }} {{ device.type }}_properties=device.description={{ device.name }}
 {% endfor %}
 
 ### Load several protocols
