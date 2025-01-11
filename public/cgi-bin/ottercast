@@ -22,6 +22,8 @@ if (isset($_POST['ssid']))
 	$config['software']['snapcast_client_active'] = (bool)($_POST['snapclient'] ?? false);
 	$config['software']['snapcast_client_hostname'] = $_POST['snapclienthost'] ?? '';
 	$config['software']['linein_stream_active'] = (bool)($_POST['linein'] ?? false);
+	$config['software']['linein_loopback_active'] = (bool)($_POST['linein_loopback'] ?? false);
+	$config['software']['linein_loopback_volume'] = (int)($_POST['linein_volume'] ?? 0);
 	$config['software']['usbaudio_active'] = (bool)($_POST['usbaudio'] ?? false);
 
 	$configService->save_config($config_file, $config);

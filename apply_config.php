@@ -104,6 +104,28 @@ else
 	`systemctl stop snapserver`;
 }
 
+// Line-In Volume
+if ($config['software']["linein_loopback_volume"])
+{
+        $volume = (int)$config['software']["linein_loopback_volume"];
+        `PULSE_SERVER=127.0.0.1 pactl set-source-volume LineIn {$volume}%`;
+}
+
+// Line-In Loopback
+$loopback_instances = `PULSE_SERVER=127.0.0.1 pactl list short modules | grep source=LineIn | cut -f1`;
+if ($config['software']["linein_loopback_active"])
+{
+	if ($loopback_instances == "")
+	{
+		`PULSE_SERVER=127.0.0.1 pactl load-module module-loopback latency_msec=100 source=LineIn sink=Speakers`;
+	}
+} else {
+	foreach (explode("\n", $loopback_instances) as $instance)
+	{
+		`PULSE_SERVER=127.0.0.1 pactl unload-module $instance`;
+	}
+}
+
 if ($config['software']["snapcast_client_active"])
 {
 	$snapclient_config = 'START_SNAPCLIENT=true' . "\n" .
