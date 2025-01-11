@@ -143,14 +143,24 @@
 
 				<hr class="my-4">
 
-				<h4 class="mb-3">Line-In Streaming (Snapcast Server)</h4>
+				<h4 class="mb-3">Line-In</h4>
+				<div class="mb-2 small bd-callout bd-callout-info">On higher amplification levels the Line-In can be very noisy. 40 % is a good start.</div>
+				<input type="number" class="form-control" name="linein_volume" id="linein_volume" min="0" max="100" value="{{ config.software.linein_loopback_volume }}">
+				<label for="linein_volume" class="form-label">Line-In Volume (in %)</label>
+
+				<div class="mb-2 small bd-callout bd-callout-info">Line-In Loopback routes the Line-In directly to the output.</div>
+				<div class="form-check">
+					<input type="checkbox" class="form-check-input mb-3" name="linein_loopback" id="linein_loopback" value="active" {{ config.software.linein_loopback_active ? 'checked' }}>
+					<label class="form-check-label" for="linein_loopback">Line-In Loopback active</label>
+				</div>
+
 				<div class="mb-2 small bd-callout bd-callout-info">OtterCast is able to stream the Line-In port directly to another OtterCast or <a href="https://github.com/badaix/snapcast/" target="_blank">Snapcast Client</a>.<br>
 				Make sure "Snapcast Client" protocol is active on the receiver. <br>Avahi/mDNS can be used with the ".local" suffix.</div>
 				<div class="form-check">
 					<input type="checkbox" class="form-check-input mb-3" name="linein" id="linein" value="active" {{ config.software.linein_stream_active ? 'checked' }}>
 					<label class="form-check-label" for="linein">Streaming server active</label>
 				</div>
-				
+
 				<hr class="my-4">
 
 				<button class="w-100 btn btn-success btn-lg" type="submit">Save settings</button>
